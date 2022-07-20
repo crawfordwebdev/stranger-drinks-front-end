@@ -1,70 +1,77 @@
 import { useState, useRef, useEffect } from "react"
 import styles from './CreateDrink.module.css'
 
-// import * as React from 'react';
-import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
-const ingredients = [
-  { _id: '62d1a60d051fdbfcd0eddcaa', label: 'Rum'},
-];
 
-const CreateDrink = props => {
+const CreateDrink = (props) => {
   const formElement = useRef()
 	const [validForm, setValidForm] = useState(false)
-
-	const [recipeData, setRecipeData] = useState([])
-
-	const [singleIngredient, setSingleIngredient] = useState({
-		name: '',
-		quantity: 0.0,
-		unit: '',
-		ingredient: '62d1a60d051fdbfcd0eddcaa' // FIXME Hardcoded for testing
-	})
-
-	const handleChangeIngredient = evt => {
-		setSingleIngredient({ ...singleIngredient, [evt.target.name]: evt.target.value })
-	}
-
   const [formData, setFormData] = useState({
 		name: '',
 		alternateName: '',
-		recipe: recipeData,
+		recipe: [{
+			unit: '',
+			quantity: 0.0,
+			ingredient: null
+		}],
 		photo: ''
 	})
 
 	const [photoData, setPhotoData] = useState({})
+	const handleChangePhoto = evt => {
+		setPhotoData({ photo: evt.target.files[0]})
+	}
 
 	const handleChange = evt => {
 		setFormData({ ...formData, [evt.target.name]: evt.target.value })
 	}
 
+	const handleChangeIngredient = (evt, idx, value=evt.target.value) => {
+		const newFormData = { ...formData }
+		if (evt.target.name) {
+			newFormData.recipe[idx][evt.target.name] = value
+		} else {
+			newFormData.recipe[idx].ingredient = value
+		}
+		setFormData({...newFormData })
+		console.log(newFormData)
+	}
+
   const handleSubmit = evt => {
 		evt.preventDefault()
-    props.handleAddDrink({...formData, recipe: recipeData}, photoData.photo)
+		formData.recipe.forEach(e => e.ingredient = e.ingredient._id)
+		console.log(formData)
+    props.handleAddDrink({...formData}, photoData.photo)
 	}
 
-	const handleChangePhoto = evt => {
-		setPhotoData({ photo: evt.target.files[0]}) // type file in form returns in array. we only need first index
-	}
-
-	const handleAddIngredient = evt => {
-		evt.preventDefault()
-		setRecipeData([...recipeData, singleIngredient])
-	 // Reset the ingredients form
-		setSingleIngredient({
-			name: '',
-			quantity: 0.0,
+	const handleAddIngredient = () => {
+		const newFormData = { ...formData }
+		const newRecipeData = {
 			unit: '',
-			ingredient: {}
-		})
+			quantity: 0.0,
+			ingredient: null
+		}
+		newFormData.recipe.unshift(newRecipeData)
+		setFormData({...newFormData })
 	}
 
-	console.log(recipeData)
+	const handleDeleteIngredient = (idx) => {
+		const newFormData = {...formData}
+		newFormData.recipe = formData.recipe.filter((ing, index) => index !== idx)
+		setFormData(newFormData)
+	}
+
+	// RegEx Example from
+	// https://www.freecodecamp.org/news/how-to-capitalize-words-in-javascript/
+	const handleCapitalize = str => {
+		return str?.replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase())
+	}
 
   useEffect(() => {
 		formElement.current.checkValidity() ? setValidForm(true) : setValidForm(false)
@@ -73,13 +80,14 @@ const CreateDrink = props => {
   return (
     <div className={styles.container}>
 			<h1>Mix Drink</h1>
-			<form autoComplete="off" ref={formElement} onSubmit={handleSubmit}>
+			<form ref={formElement} onSubmit={handleSubmit}>
 				<div>
 					<TextField
 						required
 						name="name"
 						id="name-input"
 						label="Name Required"
+						autoComplete="off"
 						value={formData.name}
 						onChange={handleChange}
 					/>
@@ -88,10 +96,92 @@ const CreateDrink = props => {
 					<TextField
 						name="alternateName"
 						id="alternateName-input"
+						autoComplete="off"
 						label="Alternate Name"
 						value={formData.alternateName}
 						onChange={handleChange}
 					/>
+				</div>
+				<div>
+					<Fab 
+					variant="extended" 
+					color="primary" 
+					aria-label="add"
+					onClick={handleAddIngredient}
+				>
+
+					<AddIcon sx={{ mr: 0.75 }} />
+					Add Another Ingredient
+				</Fab>
+					<h3>Current Ingredients: </h3>
+					<ul className={styles.recipeData}>
+					{formData.recipe.map( ( item, idx ) =>
+						<div key={`itemKey-${idx}`}>
+							<div className={styles.recipeDataBorderLeft}></div>
+							<li className={styles.recipeDataList} key={`item-${idx}`}>
+								<Autocomplete
+									isOptionEqualToValue={(option, value) => option.id === value.id}
+									disablePortal
+									
+									id="ingredient-combo-box"
+									name="ingredient"
+									
+									options={props.ingredients}
+									sx={{ width: 300 }}
+									value={item.ingredient}
+									getOptionLabel={(option) => 
+										handleCapitalize(option.name)
+									}
+									onChange={(event, newValue) => {
+										handleChangeIngredient(event, idx, newValue)
+									}}
+									renderInput={(params) => <TextField required {...params} label="Ingredients" />}
+								/>
+								<TextField 
+									id={`ingredient-quantity-${idx}`}
+									key={`ingredient-quantity-${idx}`} // FIXME Might be overkill
+									type="number"
+									inputProps={{ min: "0", step: "0.25" }} 
+									name="quantity" 
+									label="Quantity" 
+									variant="outlined"
+									sx={{ width: 115 }}
+									value={item.quantity}
+									onChange={(evt => {
+										handleChangeIngredient(evt, idx)
+									})}
+									required
+								/>
+								<TextField 
+									id={`ingredient-unit-${idx}`}
+									key={`ingredient-unit-${idx}`}
+									name="unit" 
+									label="Unit of Measurement" 
+									variant="outlined"
+									sx={{ width: 200 }}
+									value={item.unit}
+									onChange={(evt => {
+										handleChangeIngredient(evt, idx)
+									})}
+									required
+								/>
+								<Fab 
+									variant="extended" 
+									color="primary" 
+									size="small"
+									aria-label="add"
+									onClick={() => handleDeleteIngredient(idx)}
+									>
+									<DeleteForeverIcon 
+										fontSize="small" 
+										sx={{ mr: 0.25 }}
+									/>
+								</Fab>
+								<hr className={styles.recipeDataLine}></hr>
+							</li>
+						</div>
+					)}
+					</ul>
 				</div>
 				<div>
 					<Button variant="contained" component="label">
@@ -114,47 +204,6 @@ const CreateDrink = props => {
 					>
 						Add Your Drink
 					</Button>
-				</div>
-			</form>
-			<form>
-				<div>
-					<Autocomplete
-						isOptionEqualToValue={(option, value) => option.id === value.id} // Fixes Warning
-						disablePortal
-						id="ingredient-combo-box"
-						name="ingredient"
-						options={ingredients}
-						sx={{ width: 300 }}
-						renderInput={(params) => <TextField {...params} label="Ingredients" />}
-						// onChange={handleChangeIngredient}
-					/>
-					<TextField 
-						id="ingredient-quantity" 
-						type="number"
-						inputProps={{ min: "0", step: "0.25" }} 
-						name="quantity" 
-						label="Quantity" 
-						variant="outlined"
-						sx={{ width: 115 }}
-						onChange={handleChangeIngredient}
-					/>
-					<TextField 
-						id="ingredient-unit" 
-						name="unit" 
-						label="Unit of Measurement" 
-						variant="outlined"
-						sx={{ width: 200 }}
-						onChange={handleChangeIngredient}
-					/>
-					<Fab 
-						variant="extended" 
-						color="primary" 
-						aria-label="add"
-						onClick={handleAddIngredient}
-					>
-						<AddIcon sx={{ mr: 0.75 }} />
-						Add Ingredient
-					</Fab>
 				</div>
 			</form>
 		</div>

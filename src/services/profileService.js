@@ -14,7 +14,33 @@ async function getProfile(profileId) {
     headers: { Authorization: `Bearer ${tokenService.getToken()}` },
   })
   return await res.json()
+
 }
+async function createTip(profileId, formData) {
+  console.log('it connects')
+  const res = await fetch(`${BASE_URL}/${profileId}/hangover-tip`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${tokenService.getToken()}`,
+      'Content-type' : "application/json"
+    },
+      body: JSON.stringify(formData)
+    })
+  console.log('it works')
+    
+    console.log(profileId)
+    return await res.json()
+  }
+
+  async function deleteTip(profileId) {
+    const res = await fetch(`${BASE_URL}/${profileId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${tokenService.getToken()}`
+      }
+    })
+    return res.json()
+  }
 
 async function addPhoto(photoData, profileId) {
   const res = await fetch(`${BASE_URL}/${profileId}/add-photo`, {
@@ -25,6 +51,7 @@ async function addPhoto(photoData, profileId) {
     body: photoData
   })
   return await res.json()
+  
 }
 
-export { getAllProfiles, addPhoto , getProfile}
+export { getAllProfiles, addPhoto , getProfile, createTip, deleteTip}

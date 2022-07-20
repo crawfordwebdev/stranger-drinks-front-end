@@ -1,12 +1,18 @@
 import { Link } from 'react-router-dom'
+import ShowDrink from '../ShowDrink/ShowDrink'
+
 
 const DrinkCard = ({drink, user, handleDeleteDrink}) => {
+  const recipeList = drink.recipe.map(recipe => {
+    return <ShowDrink key={recipe._id} recipe={recipe} />
+  })
   return (
     <>
     <div className="card">
       <div className="card-body">
-        <h2 className="card-text">{drink.name}</h2>
-        <h4 className="card-text">{drink.owner?.name}'s</h4>
+        <h2 className="card-text">{drink.owner?.name}'s Drink</h2>
+        <h4 className="card-text">{drink.name}</h4>
+        <h5>{recipeList}</h5>
       </div>
       {user?.profile === drink.owner?._id &&
         <div className="card-footer">
@@ -23,13 +29,14 @@ const DrinkCard = ({drink, user, handleDeleteDrink}) => {
           >
             Delete
           </button>
+        </div>
+      }
           <Link
             to={`/drinks/${drink._id}`}
             className='btn btn-sm btn-info'
+            state={{drink}}      
             > Details
           </Link>
-        </div>
-      }
     </div>
     </>
   )

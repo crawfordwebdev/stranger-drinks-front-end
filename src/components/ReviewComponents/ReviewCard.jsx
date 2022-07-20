@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-const ReviewCard = ({review}) => {
+const ReviewCard = ({review, user, drinkData, handleDeleteReview, handleUpdateReview}) => {
   return (
     <>
     <div className="card">
@@ -10,6 +10,24 @@ const ReviewCard = ({review}) => {
         <p className="card-text">{review.content}</p>
         <p className="card-text">Rating: {review.rating}</p>
       </div>
+      {user?.profile === review.author?._id &&
+        <div className="card-footer">
+          <Link
+            to="/edit-review"
+            className='btn btn-sm btn-warning'
+            state={{review}}
+            handleUpdateReview={handleUpdateReview}
+          >
+            Edit
+          </Link>
+          <button 
+            className="btn btn-sm btn-danger m-left"
+            onClick={() => handleDeleteReview(review._id)}
+          >
+            Delete
+          </button>
+        </div>
+      }
     </div>
     </>
   )
