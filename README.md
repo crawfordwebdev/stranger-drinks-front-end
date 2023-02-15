@@ -5,7 +5,6 @@
 
 
 ## Getting Started: 
-**[![Netlify](https://img.shields.io/badge/netlify-%23000000.svg?style=for-the-badge&logo=netlify&logoColor=#00C7B7) (Deployed Link)](https://stranger-drinks.netlify.app/)**<br>
 **[![Trello](https://img.shields.io/badge/Trello-%23026AA7.svg?style=for-the-badge&logo=Trello&logoColor=white) (Plan Link)](https://trello.com/b/EDD05YLr/stranger-drinks)**<br><br>
 
 ## Technologies Used: 
